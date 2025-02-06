@@ -9,5 +9,8 @@ __pycache__/
 .vscode/
 .idea/
 
+# Virtual Environment
+myenv/
+
 # Docker
 **/Dockerfile.local
