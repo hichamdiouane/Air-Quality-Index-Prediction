@@ -1,0 +1,38 @@
+name: Weekly Model Training
+
+on:
+  schedule:
+    # Runs every Sunday at 00:00 UTC
+    - cron: "0 0 * * 0"
+  workflow_dispatch:  # Allow manual triggers
+
+jobs:
+  train-model:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+        
+    - name: Install training dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip cache purge
+        pip install -r training_pipeline/requirements.txt --no-cache-dir
+        
+    - name: Create .env file
+      run: |
+        echo "HOPSWORKS_API_KEY=${{ secrets.HOPSWORKS_API_KEY }}" >> .env
+      
+    - name: Run training pipeline
+      run: python training_pipeline/training_pipeline.py
+      
+    - name: Training failure handling
+      if: failure()
+      run: |
+        echo "Model training failed at $(date)" >> $GITHUB_STEP_SUMMARY
+        python -m pip freeze >> $GITHUB_STEP_SUMMARY
